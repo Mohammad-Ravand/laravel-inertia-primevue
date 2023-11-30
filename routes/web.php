@@ -1,9 +1,13 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Foundation\Application;
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\NewsController as AdminNewsController;
+use App\Http\Controllers\Admin\PostController as AdminPostController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,9 +29,29 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['checkRole:customer'])->group(function(){
+
+    Route::resource('news',NewsController::class);
+    Route::resource('post',PostController::class);
+
+    Route::get('/dashboard', function () {
+        return Inertia::render('Dashboard');
+    })->middleware(['auth', 'verified'])->name('dashboard');
+});
+
+
+
+Route::middleware(['checkRole:admin'])->prefix('admin')->name('admin.')->group(function(){
+    Route::resource('news',AdminNewsController::class);
+    Route::resource('post',AdminPostController::class);
+
+    Route::get('dashboard', function () {
+        return Inertia::render('Admin/Dashboard');
+    })->middleware(['auth', 'verified'])->name('dashboard');
+    });
+
+
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
