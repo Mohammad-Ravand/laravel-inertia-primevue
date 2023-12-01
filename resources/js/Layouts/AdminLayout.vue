@@ -18,9 +18,14 @@ const props = defineProps({
 
 const toast = useToast();
 
+onMounted(() => {
+    if(props.notify && props.notify?.title && Object.keys(props.notify)){
+        toast.add({ severity: props.notify.type, summary: props.notify.title, detail:props.notify.content, group: 'tr', right: 3000 });
+    }
+}),
 
 watch(()=> props.notify,(v)=>{
-    toast.add({ severity: props.notify.type, summary: props.notify.title, detail:props.notify.content, group: 'tr', right: 3000 });
+    toast.add({ severity: v.type, summary: v.title, detail:v.content, group: 'tr', right: 3000 });
 })
 
 

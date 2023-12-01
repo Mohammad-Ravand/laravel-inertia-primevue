@@ -34,6 +34,7 @@ Route::middleware(['checkRole:customer'])->group(function(){
     Route::resource('news',NewsController::class);
     Route::resource('post',PostController::class);
 
+
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->middleware(['auth', 'verified'])->name('dashboard');
@@ -44,6 +45,8 @@ Route::middleware(['checkRole:customer'])->group(function(){
 Route::middleware(['checkRole:admin'])->prefix('admin')->name('admin.')->group(function(){
     Route::resource('news',AdminNewsController::class);
     Route::resource('post',AdminPostController::class);
+    Route::post('/post/{post}',[AdminPostController::class,'update'])->name('post.updatePost');
+    Route::post('/news/{news}',[AdminNewsController::class,'update'])->name('news.updatePost');
 
     Route::get('dashboard', function () {
         return Inertia::render('Admin/Dashboard');

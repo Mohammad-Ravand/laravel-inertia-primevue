@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Services\GlobalNotification;
 use App\Http\Requests\StoreNewsRequest;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UpdateNewsRequest;
 
 class NewsController extends Controller
@@ -20,7 +21,7 @@ class NewsController extends Controller
      */
     public function index()
     {
-        $newss = News::paginate(10)->onEachSide(0);
+        $newses = News::paginate(10)->onEachSide(0);
 
         $activeActions = false;
         if (auth()->id()) {
@@ -28,7 +29,7 @@ class NewsController extends Controller
         }
 
         return Inertia::render('Admin/News/Index', [
-            'newss' => $newss,
+            'newses' => $newses,
             'activeAction' => $activeActions,
             'notify' => session()->get('notify'),
 
@@ -110,7 +111,20 @@ class NewsController extends Controller
      */
     public function edit(News $news)
     {
-        //
+        try {
+            $news->categories = $news->categories;
+            $categories = Category::all();
+
+            return Inertia::render('Admin/News/Edit', [
+                'categories' => $categories,
+                'news' => $news,
+                'notify' => session()->get('notify'),
+            ]);
+        } catch (\Throwable $th) {
+            $notification = new GlobalNotification('Error!!,show page for edit news', '', Notification::Error);
+
+            return redirect(route('admin.news.index'))->with(['notify' => $notification]);;
+        }
     }
 
     /**
@@ -118,7 +132,58 @@ class NewsController extends Controller
      */
     public function update(UpdateNewsRequest $request, News $news)
     {
-        //
+        DB::beginTransaction();
+        try {
+            $requestData = $request->validated();
+
+            if ($request->has('image') && !is_null($request->file('image'))) {
+                //save new images
+                $image = $request->file('image');
+                $oldImagePath = $news->image;
+                $imagePath = $image->store('images', 'public');
+                $imagePath = '/storage/' . $imagePath;
+
+                $postUpdate =  $news->update([
+                    "title" => $requestData["title"],
+                    "description" => $requestData["description"],
+                    "image" => $imagePath,
+                ]);
+
+                if (!$postUpdate) {
+                    throw new Exception("error update hotel", 1);
+                }
+
+                //update news categories
+                $news->categories()->sync($requestData['categories']);
+
+                //remove old file
+                $oldImagePath = str_replace('/storage/', '', $oldImagePath);
+                Storage::delete($oldImagePath);
+            } else {
+                $postUpdate =  $news->update([
+                    "title" => $requestData["title"],
+                    "description" => $requestData["description"],
+                ]);
+
+                if (!$postUpdate) {
+                    throw new Exception("error update hotel", 1);
+                }
+
+                $news->categories()->sync($requestData['categories']);
+
+            }
+            DB::commit();
+
+            $notification = new GlobalNotification('news updated successfully', '', Notification::Success);
+            return redirect(route('admin.news.index'))->with(['notify' => $notification]);;
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            $notification = new GlobalNotification('Error!!, news does not updated', '', Notification::Error);
+
+            return redirect()->back()->withInput()->with(['notify' => $notification]);;
+        }
     }
 
     /**

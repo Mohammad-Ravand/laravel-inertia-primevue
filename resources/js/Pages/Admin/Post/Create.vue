@@ -5,7 +5,7 @@ import Chips from 'primevue/chips'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import MultiSelect from 'primevue/multiSelect'
-import Default from '@/Layouts/Default.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Card from 'primevue/card';
 import Button from 'primevue/button';
 import { Head, Link, useForm } from '@inertiajs/vue3';
@@ -20,7 +20,11 @@ const props = defineProps({
     categories: {
         type: Array,
         required: true
-    }
+    },
+    notify:{
+        type:Object,
+        required:false
+    },
 });
 
 const post = ref({
@@ -54,7 +58,7 @@ const submit = () => {
             image: data.image[0],
             categories: data.categories.map(category => category.code)
         }))
-        .post(route('post.store'), {
+        .post(route('admin.post.store'), {
             onFinish: () => {
 
             }
@@ -64,7 +68,7 @@ const submit = () => {
 </script>
 
 <template>
-    <Default>
+    <AdminLayout :notify="props.notify">
         <Card class="w-full m-auto mt-10 p-10  md:w-3/4 lg:w-1/2 bg-gray-50">
             <template #title>
                 <h2 class="h-full text-center text-ellipsis">Create New Post</h2>
@@ -116,7 +120,7 @@ const submit = () => {
                 </form>
             </template>
         </Card>
-    </Default>
+    </AdminLayout>
 </template>
 
 

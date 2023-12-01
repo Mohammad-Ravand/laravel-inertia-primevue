@@ -2,15 +2,14 @@
 <script setup>
 import LaravelPagination from '@/Components/LaravelPagination.vue';
 import News from '@/Components/News.vue';
-import Default from '@/Layouts/Default.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import {computed} from 'vue';
-
 const props = defineProps({
     notify:{
         type:Object,
         required:false
     },
-    newss:{
+    newses:{
         type:Object,
         required:true
     },
@@ -21,7 +20,8 @@ const props = defineProps({
     }
 });
 
-const listNewss =computed(()=> props.newss.data)
+const listnewses =computed(()=> props.newses.data);
+
 </script>
 
 <style lang="scss" scoped>
@@ -30,10 +30,9 @@ const listNewss =computed(()=> props.newss.data)
 </style>
 
 <template>
-    <Default :notify="props.notify">
+    <AdminLayout :notify="props.notify">
         <section class="my-5 flex  justify-around flex-wrap gap-y-4 gap-2 mx-2">
-
-            <template v-for="news in listNewss" :key="news.id">
+            <template v-for="news in listnewses" :key="news.id">
                 <News
                     :id="news.id"
                     :title="news.title"
@@ -44,8 +43,8 @@ const listNewss =computed(()=> props.newss.data)
             </template>
 
 
-            <LaravelPagination :links="props.newss.links" />
+            <LaravelPagination :links="props.newses.links" />
 
         </section>
-    </Default>
+    </AdminLayout>
 </template>

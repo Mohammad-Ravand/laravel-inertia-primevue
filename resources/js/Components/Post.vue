@@ -62,7 +62,7 @@ function removePost() {
                 </p>
 
                 <div class="mt-4 text-center ">
-                    <Link :href="`/post/${props.id}`" class="m-auto rounded-md text-sm px-3 py-2 bg-blue-500 text-white">
+                    <Link :href="route('admin.post.show',props.id)" class="m-auto rounded-md text-sm px-3 py-2 bg-blue-500 text-white">
                     read more
                     </Link>
                 </div>

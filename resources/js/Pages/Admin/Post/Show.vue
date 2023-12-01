@@ -1,7 +1,7 @@
 
 <script setup>
 import Post from '@/Components/Post.vue';
-import Default from '@/Layouts/Default.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Link } from '@inertiajs/vue3';
 import {computed} from 'vue';
 import Card from 'primevue/card'
@@ -35,7 +35,7 @@ const listPosts =computed(()=> props.post.data);
 </style>
 
 <template>
-    <Default>
+    <AdminLayout>
         <section class="my-5 flex  justify-around flex-wrap gap-y-4 gap-2 mx-2">
 
         <div class="card flex w-full align-items-center justify-center">
@@ -74,5 +74,5 @@ const listPosts =computed(()=> props.post.data);
 
 
         </section>
-    </Default>
+    </AdminLayout>
 </template>

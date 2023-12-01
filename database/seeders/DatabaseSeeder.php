@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Category;
 use Illuminate\Database\Seeder;
 use Database\Seeders\RoleSeeder;
+use Database\Seeders\UserSeeder;
 use Database\Seeders\CategoryNewsSeeder;
 use Database\Seeders\CategoryPostSeeder;
 
@@ -26,6 +27,8 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
         $this->call(RoleSeeder::class);
+        $this->call(UserSeeder::class);
+
         User::factory(10)->create();
 
         Category::factory(10)->create();

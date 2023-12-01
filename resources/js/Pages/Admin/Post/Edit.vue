@@ -1,11 +1,11 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, toRefs,watch } from 'vue';
 
 import Chips from 'primevue/chips'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import MultiSelect from 'primevue/multiSelect'
-import Default from '@/Layouts/Default.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Card from 'primevue/card';
 import Button from 'primevue/button';
 import { Head, Link, useForm } from '@inertiajs/vue3';
@@ -15,6 +15,7 @@ import Toast from "primevue/toast";
 // const toast = useToast();
 import Image from 'primevue/image';
 import TabMenu from 'primevue/tabmenu';
+import PreviousMap from 'postcss/lib/previous-map';
 
 
 const props = defineProps({
@@ -25,7 +26,11 @@ const props = defineProps({
     post: {
         type: Object,
         required: true
-    }
+    },
+    notify:{
+        type:Object,
+        required:false
+    },
 });
 
 
@@ -33,26 +38,50 @@ const categoryOptions = computed(() => {
     return props.categories.map(category => ({ name: category.name, code: category.id }))
 });
 
+const selectedCategories = computed(() => {
+    let r = props.post.categories.map(selectedCategory => {
+        selectedCategory = JSON.parse(JSON.stringify(selectedCategory))
+        let t= props.categories.find(cat => {
+            return cat.id == selectedCategory.id;
+        });
+
+        return {name:t.name,code:t.id}
+    });
+
+    return r;
+});
+
+console.log('selectedCategories',selectedCategories.value)
+
+
 const form = useForm({
     title: props.post.title ?? '',
     description: props.post.description ?? '',
-    categories: props.post.categories ?? [],
+    categories: selectedCategories.value,
     image: null
 });
+
 
 const postOldImage = ref(props.post.image);
 
 const postImage = ref(null);
 
+function getImage(data){
+    try {
+        return data.image[0];
+    } catch (error) {
+        return null;
+    }
+}
 
 const submit = () => {
     form
         .transform((data) => ({
             ...data,
-            image: data.image[0],
+            image: getImage(data),
             categories: data.categories.map(category => category.code)
         }))
-        .post(route('post.store'), {
+        .post(route('admin.post.updatePost',props.post.id), {
             onFinish: () => {
 
             }
@@ -62,19 +91,19 @@ const submit = () => {
 const activeMenu = ref(0);
 
 const tabItems = ref([
-    { label: 'current image', icon: 'pi pi-home' },
-    { label: 'upload new', icon: 'pi pi-chart-line' },
+    { label: 'current image', value: 'pi pi-home' },
+    { label: 'upload new', value: 'pi pi-chart-line' },
 ]);
 
 </script>
 
 <template>
-    <Default>
+    <AdminLayout :notify="props.notify">
         <Card class="w-full m-auto mt-10 p-10  md:w-3/4 lg:w-1/2 bg-gray-50">
             <template #title>
                 <h2 class="h-full text-center text-ellipsis">Create New Post</h2>
+                <h2>form: {{ form.data.categories }}</h2>
             </template>
-
             <template #content>
 
                 <form class="m-3 " @submit.prevent="submit">
@@ -96,18 +125,18 @@ const tabItems = ref([
                         <!-- <MultiSelect v-model="post.categories" :options="categoryOptions" optionLabel="categories" placeholder="Select Categories"
                         :maxSelectedLabels="3" class="w-full md:w-20rem" /> -->
 
-                        <MultiSelect v-model="form.categories" display="chip" :options="categoryOptions" optionLabel="name"
-                            placeholder="Select Cities" :maxSelectedLabels="3" class="w-full md:w-20rem" />
+                    <MultiSelect   v-model="form.categories" display="chip" :options="categoryOptions" optionLabel="name"
+                            placeholder="Select Cities" :maxSelectedLabels="20" class="w-full md:w-20rem" />
                     </div>
                     <InputError class="mt-1 mb-2" :message="form.errors.categories" />
 
                     <TabMenu v-model:activeIndex="activeMenu" :model="tabItems" />
                     <br>
-                        <!-- show old image -->
-                        <Image v-show="activeMenu==0" :src="postOldImage" alt="Image" width="250" preview />
+                    <!-- show old image -->
+                    <Image v-show="activeMenu == 0" :src="postOldImage" alt="Image" width="250" preview />
+                    <CustomeFileUploader v-show="activeMenu == 1" v-model="form.image" />
 
-                        <CustomeFileUploader v-show="activeMenu==1" v-model="form.image" />
-                        <InputError class="mt-1 mb-2" :message="form.errors.image" />
+                    <InputError class="mt-1 mb-2" :message="form.errors.image" />
 
 
                     <div class="text-center mt-5">
@@ -117,7 +146,7 @@ const tabItems = ref([
                 </form>
             </template>
         </Card>
-    </Default>
+    </AdminLayout>
 </template>
 
 

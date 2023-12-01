@@ -6,12 +6,13 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdatePostRequest extends FormRequest
 {
+
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +23,11 @@ class UpdatePostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'title'=>['required','string','min:5','max:200'],
+            'description'=>['required','string'],
+            'categories'=>['required','array'],
+            "image" => "nullable|image|mimes:jpeg,png,jpg,gif|max:2048",
+
         ];
     }
 }

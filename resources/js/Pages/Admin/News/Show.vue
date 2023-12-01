@@ -1,7 +1,7 @@
 
 <script setup>
-import Post from '@/Components/Post.vue';
-import Default from '@/Layouts/Default.vue';
+import News from '@/Components/News.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Link } from '@inertiajs/vue3';
 import {computed} from 'vue';
 import Card from 'primevue/card'
@@ -35,7 +35,7 @@ const listPosts =computed(()=> props.news.data);
 </style>
 
 <template>
-    <Default>
+    <AdminLayout>
         <section class="my-5 flex  justify-around flex-wrap gap-y-4 gap-2 mx-2">
 
         <div class="card flex w-full align-items-center justify-center">
@@ -68,13 +68,11 @@ const listPosts =computed(()=> props.news.data);
                         <Button rounded  icon="pi pi-times"  severity="secondary" />
                     </div>
 
-
-
                 </template>
             </Card>
         </div>
 
 
         </section>
-    </Default>
+    </AdminLayout>
 </template>

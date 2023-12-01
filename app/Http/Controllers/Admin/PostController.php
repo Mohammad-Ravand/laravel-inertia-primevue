@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Services\GlobalNotification;
 use App\Http\Requests\StorePostRequest;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UpdatePostRequest;
 
 class PostController extends Controller
@@ -106,15 +107,14 @@ class PostController extends Controller
     public function edit(Post $post)
     {
         try {
+            $post->categories = $post->categories;
             $categories = Category::all();
 
             return Inertia::render('Admin/Post/Edit', [
                 'categories' => $categories,
-                'post'=>$post,
+                'post' => $post,
                 'notify' => session()->get('notify'),
             ]);
-
-
         } catch (\Throwable $th) {
             $notification = new GlobalNotification('Error!!,show page for edit post', '', Notification::Error);
 
@@ -127,7 +127,58 @@ class PostController extends Controller
      */
     public function update(UpdatePostRequest $request, Post $post)
     {
-        //
+        DB::beginTransaction();
+        try {
+            $requestData = $request->validated();
+
+            if ($request->has('image') && !is_null($request->file('image'))) {
+                //save new images
+                $image = $request->file('image');
+                $oldImagePath = $post->image;
+                $imagePath = $image->store('images', 'public');
+                $imagePath = '/storage/' . $imagePath;
+
+                $postUpdate =  $post->update([
+                    "title" => $requestData["title"],
+                    "description" => $requestData["description"],
+                    "image" => $imagePath,
+                ]);
+
+                if (!$postUpdate) {
+                    throw new Exception("error update hotel", 1);
+                }
+
+                //update post categories
+                $post->categories()->sync($requestData['categories']);
+
+                //remove old file
+                $oldImagePath = str_replace('/storage/', '', $oldImagePath);
+                Storage::delete($oldImagePath);
+            } else {
+                $postUpdate =  $post->update([
+                    "title" => $requestData["title"],
+                    "description" => $requestData["description"],
+                ]);
+
+                if (!$postUpdate) {
+                    throw new Exception("error update hotel", 1);
+                }
+
+                $post->categories()->sync($requestData['categories']);
+
+            }
+            DB::commit();
+
+            $notification = new GlobalNotification('post updated successfully', '', Notification::Success);
+            return redirect(route('admin.post.index'))->with(['notify' => $notification]);;
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            $notification = new GlobalNotification('Error!!, post does not updated', '', Notification::Error);
+
+            return redirect()->back()->withInput()->with(['notify' => $notification]);;
+        }
     }
 
     /**
